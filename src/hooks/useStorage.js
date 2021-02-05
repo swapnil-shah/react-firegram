@@ -2,8 +2,8 @@
 //To do this, create custom hook
 //This custome hook is a function will be responsible for handling the file upload and return usefule values regarding that upload like upload progress, image url, etc.
 
-import React, { useState, useEffect } from 'react'
-import { projectStorage } from '../firebase/config'
+import { useState, useEffect } from 'react'
+import { projectStorage, projectFirestore, timestamp } from '../firebase/config'
 
 
 const useStorage = (file) => {
@@ -14,6 +14,8 @@ const useStorage = (file) => {
   useEffect(() => {
     //References
     const storageRef = projectStorage.ref(file.name)//creating a ref to a file inside a default firebase bucket. 
+
+    const collectionRef = projectFirestore.collection('images')//This is used to get data from firebase database
 
     storageRef.put(file)
       .on('state_changed',
@@ -26,6 +28,8 @@ const useStorage = (file) => {
         },
         async () => {
           const url = await storageRef.getDownloadURL()
+          const createdAt = timestamp()//To create timestamp, the best way is to create is from firebase server timestamp, 'timestamp' from firebase config
+          collectionRef.add({ url, createdAt })
           setUrl(url)
         }
       )
